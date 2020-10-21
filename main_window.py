@@ -28,10 +28,6 @@ class Ui_mainWindow(object):
         self.pushButton.setObjectName("pushButton")
 
 
-
-
-
-
         self.label_4 = QtWidgets.QLabel(self.centralwidget)
         self.label_4.setGeometry(QtCore.QRect(30, 350, 350, 30))
         self.label_4.setObjectName("label_4")
@@ -58,17 +54,14 @@ class Ui_mainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         mainWindow.setWindowTitle(_translate("mainWindow", "Crypto2"))
         self.label.setText(_translate("mainWindow", "Ассиметричные криптосистемы :"))
-        self.comboBox.setItemText(0, _translate("mainWindow", " "))
-        self.comboBox.setItemText(1, _translate("mainWindow", "Базовые алгоритмы теории чиел"))
+        self.comboBox.setItemText(0, _translate("mainWindow", ""))
+        self.comboBox.setItemText(1, _translate("mainWindow", "Базовые алгоритмы теории чисел"))
         self.comboBox.setItemText(2, _translate("mainWindow", "RSA"))
         self.comboBox.setItemText(3, _translate("mainWindow", "Метод ключевого обмена Диффи-Хелмана"))
         self.comboBox.setItemText(4, _translate("mainWindow", "Криптосистема Шамира"))
         self.comboBox.setItemText(5, _translate("mainWindow", "Криптосистема Эль-Гамаля"))
 
         self.pushButton.setText(_translate("mainWindow", "Далее"))
-
-
-        
 
         self.label_4.setText(_translate("mainWindow", "Created by svetgrak "))
 
