@@ -24,4 +24,9 @@ def gcd(a, b):
 
 
 def invert(x, p):
-    return (egcd(x, p)[2])
+    inv = egcd(x, p)[1]
+    if inv < 0:
+        return inv+p
+    else:
+        return inv
+

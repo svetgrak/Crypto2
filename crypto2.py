@@ -4,9 +4,11 @@ from basic_algorithms_window import Ui_BasicAlgWindow
 from main_window import Ui_mainWindow
 from rsa_window import Ui_Form_RSA
 from diffie_hellman_window import Ui_Form_DiffieHellman
+from shamir_window import Ui_Form_Shamir
 import basic_algorithms
 import rsa
 import diffie_hellman
+import shamir
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -27,6 +29,8 @@ class MainWin(QMainWindow, Ui_mainWindow):
             self.window = RSAWin()
         elif choice == "Метод ключевого обмена Диффи-Хелмана":
             self.window = DiffieHellmanWin()
+        elif choice == "Криптосистема Шамира":
+            self.window = ShamirWin()
         self.window.show()
         application.hide()
 
@@ -383,6 +387,71 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
             msgShow("Длина чисел задана неверно")
             return
         msgShow("Изменения успешно приняты")
+
+class ShamirWin(QMainWindow,Ui_Form_Shamir):
+    def __init__(self, parent=None):
+        super(ShamirWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_Shamir()
+        self.ui2.setupUi(self)
+        self.ui2.action_2.triggered.connect(self.back)
+        self.ui2.action.triggered.connect(self.change_len_keys)
+        self.ui2.pushButton.clicked.connect(self.generated_p)
+        self.ui2.pushButton_2.clicked.connect(self.send_message)
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
+    def change_len_keys(self):
+        choice, ok = QInputDialog.getText(self, 'Change len keys ',
+                                          'Укажите новую длину для ключей от 20 до 200.')
+        if choice.isdigit() and int(choice) >= 20 and int(choice)<= 200:
+            self.ui2.lineEdit_10.setText(choice)
+            self.ui2.label_12.setText("Длина ключей " + choice + " символов.")
+        else:
+            msgShow("Длина чисел задана неверно")
+            return
+        msgShow("Изменения успешно приняты")
+
+    def generated_p(self):
+        len_keys = int(self.ui2.lineEdit_10.text())
+        self.ui2.lineEdit.setText(str(rsa.generation_prime_numb(len_keys)))
+        return
+
+    def send_message(self):
+        len_keys = int(self.ui2.lineEdit_10.text())
+        text = self.ui2.textEdit.toPlainText()
+        if text == '':
+            msgShow("Введите сообщение для передачи")
+            return
+
+        p = self.ui2.lineEdit.text()
+        if p.isdigit() == False or len(p)!=len_keys:
+            msgShow("Введите или сгенерируйте простое число")
+            return
+        text = shamir.text_to_blocks_num(text, len_keys)
+        print(text)
+        result = []
+        for block in text:
+            c_a, d_a = shamir.generation_c_and_d(int(p), len_keys)
+            c_b, d_b = shamir.generation_c_and_d(int(p), len_keys)
+            self.ui2.lineEdit_2.setText(str(c_a))
+            self.ui2.lineEdit_3.setText(str(d_a))
+            self.ui2.lineEdit_4.setText(str(c_b))
+            self.ui2.lineEdit_5.setText(str(d_b))
+            x1,x2,x3,x4 = shamir.send_block(int(block),c_a,d_a,c_b,d_b,int(p))
+            self.ui2.lineEdit_6.setText(str(x1))
+            self.ui2.lineEdit_7.setText(str(x2))
+            self.ui2.lineEdit_8.setText(str(x3))
+            self.ui2.lineEdit_9.setText(str(x4))
+            result.append(str(x4))
+            msgShow("Часть сообщения успешно передана")
+        self.ui2.textEdit_2.setText(shamir.blocks_num_to_text(result,len_keys))
+
+
+
+
 
 
 
