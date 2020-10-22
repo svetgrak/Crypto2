@@ -3,8 +3,10 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog,
 from basic_algorithms_window import Ui_BasicAlgWindow
 from main_window import Ui_mainWindow
 from rsa_window import Ui_Form_RSA
+from diffie_hellman_window import Ui_Form_DiffieHellman
 import basic_algorithms
 import rsa
+import diffie_hellman
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -24,7 +26,7 @@ class MainWin(QMainWindow, Ui_mainWindow):
         elif choice == "RSA":
             self.window = RSAWin()
         elif choice == "Метод ключевого обмена Диффи-Хелмана":
-            msgShow('2')
+            self.window = DiffieHellmanWin()
         self.window.show()
         application.hide()
 
@@ -261,6 +263,127 @@ class RSAWin(QMainWindow, Ui_Form_RSA):
             msgShow("Ключи успешно сохранены")
         else:
             msgShow("Сохранение не произошло")
+
+class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
+    def __init__(self, parent=None):
+        super(DiffieHellmanWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_DiffieHellman()
+        self.ui2.setupUi(self)
+        self.ui2.action.triggered.connect(self.back)
+        self.ui2.pushButton.clicked.connect(self.gener_a_g_p)
+        self.ui2.pushButton_3.clicked.connect(self.calculated_A)
+        self.ui2.pushButton_4.clicked.connect(self.gener_b)
+        self.ui2.pushButton_2.clicked.connect(self.send_g_p_A)
+        self.ui2.pushButton_5.clicked.connect(self.calculated_B)
+        self.ui2.pushButton_6.clicked.connect(self.send_B)
+        self.ui2.pushButton_7.clicked.connect(self.calculated_key_first)
+        self.ui2.pushButton_8.clicked.connect(self.calculated_key_second)
+        self.ui2.action_2.triggered.connect(self.change_len_num)
+
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
+    def gener_a_g_p(self):
+        msgShow("Возможна долгая генерация чисел. \nУменьшите длину чисел, если хотите ускорить генерацию.\nЗакройте это окно")
+        len_num = int(self.ui2.lineEdit_13.text())
+        a,g,p = diffie_hellman.generation_a_g_p(len_num)
+        self.ui2.lineEdit.setText(str(a))
+        self.ui2.lineEdit_2.setText(str(g))
+        self.ui2.lineEdit_3.setText(str(p))
+        msgShow("Рассчитайте A и отправьте клиенту Bob числа: g, p, A")
+
+    def gener_b(self):
+        len_num = int(self.ui2.lineEdit_13.text())
+        b = diffie_hellman.generation_b(len_num)
+        self.ui2.lineEdit_5.setText(str(b))
+        msgShow("Получите от клиента Alice числа: g, p, A и рассчитайте число B")
+
+    def calculated_A(self):
+        len_num = int(self.ui2.lineEdit_13.text())
+        a = self.ui2.lineEdit.text()
+        g = self.ui2.lineEdit_2.text()
+        p = self.ui2.lineEdit_3.text()
+
+        if a.isdigit() and g.isdigit() and p.isdigit() and len(a) == len_num and len(g) == len_num and len(p) == len_num:
+            self.ui2.lineEdit_4.setText(str(diffie_hellman.calculated(int(g),int(a),int(p))))
+            msgShow("Получите от клиента Bob число B")
+        else:
+            msgShow("Введите или сгенерируйте числа")
+
+    def send_g_p_A(self):
+        len_num = int(self.ui2.lineEdit_13.text())
+        g = self.ui2.lineEdit_2.text()
+        p = self.ui2.lineEdit_3.text()
+        A = self.ui2.lineEdit_4.text()
+        if A.isdigit() and g.isdigit() and p.isdigit() and len(g) == len_num and len(p) == len_num:
+            self.ui2.lineEdit_6.setText(g)
+            self.ui2.lineEdit_7.setText(p)
+            self.ui2.lineEdit_8.setText(A)
+
+        else:
+            msgShow("Введите или сгенерируйте числа, или рассчитайте A")
+
+    def calculated_B(self):
+        len_num = int(self.ui2.lineEdit_13.text())
+        g = self.ui2.lineEdit_6.text()
+        b = self.ui2.lineEdit_5.text()
+        p = self.ui2.lineEdit_7.text()
+        if g.isdigit() and b.isdigit() and p.isdigit() and len(g) == len_num and len(b) == len_num and len(p) == len_num:
+            self.ui2.lineEdit_9.setText(str(diffie_hellman.calculated(int(g),int(b),int(p))))
+            msgShow("Отправьте клиенту Alice число B и рассчитайте общий ключ")
+        else:
+            msgShow("Введите или получите числа")
+
+    def send_B(self):
+        len_num = int(self.ui2.lineEdit_13.text())
+        B = self.ui2.lineEdit_9.text()
+        if B.isdigit():
+            self.ui2.lineEdit_10.setText(B)
+        else:
+            msgShow("Рассчитайте B")
+
+    def calculated_key_first(self):
+        len_num = int(self.ui2.lineEdit_13.text())
+        B = self.ui2.lineEdit_10.text()
+        a = self.ui2.lineEdit.text()
+        p = self.ui2.lineEdit_3.text()
+        if B.isdigit() and a.isdigit() and p.isdigit() and len(a) == len_num and len(p) == len_num:
+            self.ui2.lineEdit_11.setText(str(diffie_hellman.calculated(int(B),int(a),int(p))))
+        else:
+            msgShow("Введите или получите числа")
+        key_first = self.ui2.lineEdit_11.text()
+        key_second = self.ui2.lineEdit_12.text()
+        if key_first == key_second:
+            msgShow("Общий ключ рассчитан \n"+ key_first)
+
+    def calculated_key_second(self):
+        len_num = int(self.ui2.lineEdit_13.text())
+        A = self.ui2.lineEdit_8.text()
+        b = self.ui2.lineEdit_5.text()
+        p = self.ui2.lineEdit_7.text()
+        if A.isdigit() and b.isdigit() and p.isdigit() and len(b) == len_num and len(p) == len_num:
+            self.ui2.lineEdit_12.setText(str(diffie_hellman.calculated(int(A),int(b),int(p))))
+        else:
+            msgShow("Введите или получите числа")
+        key_first = self.ui2.lineEdit_11.text()
+        key_second = self.ui2.lineEdit_12.text()
+        if key_first == key_second:
+            msgShow("Общий ключ рассчитан: \n" + key_first)
+
+    def change_len_num(self):
+        choice, ok = QInputDialog.getText(self, 'Change len keys ',
+                                          'Укажите новую длину для чисел от 20 до 200.')
+        if choice.isdigit() and int(choice) >= 20 and int(choice)<= 200:
+            self.ui2.lineEdit_13.setText(choice)
+            self.ui2.label_15.setText("Длина чисел " + choice + " символов.")
+        else:
+            msgShow("Длина чисел задана неверно")
+            return
+        msgShow("Изменения успешно приняты")
+
 
 
 
