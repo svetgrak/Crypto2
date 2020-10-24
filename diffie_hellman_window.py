@@ -6,6 +6,8 @@ class Ui_Form_DiffieHellman(object):
     def setupUi(self, Form_DiffieHellman):
         Form_DiffieHellman.setObjectName("Diffie Hellman")
         Form_DiffieHellman.resize(714, 459)
+        Form_DiffieHellman.setMaximumSize(QtCore.QSize(714, 459))
+        Form_DiffieHellman.setMinimumSize(QtCore.QSize(714, 459))
         self.centralwidget = QtWidgets.QWidget(Form_DiffieHellman)
         self.centralwidget.setObjectName("centralwidget")
         self.line = QtWidgets.QFrame(self.centralwidget)

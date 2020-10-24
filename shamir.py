@@ -30,11 +30,9 @@ def send_block(block,c_a,d_a,c_b,d_b,p):
     x4 = basic_algorithms.modular_pow(x3, d_b, p)
     return x1,x2,x3,x4
 
-def blocks_num_to_text(blocks,len_keys):
-    for i in range(len(blocks)):
-        blocks[i] = blocks[i].rjust((((len_keys//4)-1)*4),'0')
-    print(blocks)
-    result = ''.join(blocks)
+def block_num_to_text(block,len_keys):
+    block = block.rjust((((len_keys//4)-1)*4),'0')
+    result = ''.join(block)
     result_text = ''
     for i in range(len(result) // 4):
         var = int(result[i * 4:(i + 1) * 4])

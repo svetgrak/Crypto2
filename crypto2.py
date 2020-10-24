@@ -1,14 +1,20 @@
 import sys
+import time
+
+from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QInputDialog
+
 from basic_algorithms_window import Ui_BasicAlgWindow
 from main_window import Ui_mainWindow
 from rsa_window import Ui_Form_RSA
 from diffie_hellman_window import Ui_Form_DiffieHellman
 from shamir_window import Ui_Form_Shamir
+from elgamal_window import Ui_Form_ElGamal
 import basic_algorithms
 import rsa
 import diffie_hellman
 import shamir
+import elgamal
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -31,9 +37,10 @@ class MainWin(QMainWindow, Ui_mainWindow):
             self.window = DiffieHellmanWin()
         elif choice == "Криптосистема Шамира":
             self.window = ShamirWin()
+        elif choice == "Криптосистема Эль-Гамаля":
+            self.window = ElGamalWin()
         self.window.show()
         application.hide()
-
 
 class BasicAlgWin(QMainWindow, Ui_BasicAlgWindow):
 
@@ -417,7 +424,7 @@ class ShamirWin(QMainWindow,Ui_Form_Shamir):
     def generated_p(self):
         len_keys = int(self.ui2.lineEdit_10.text())
         self.ui2.lineEdit.setText(str(rsa.generation_prime_numb(len_keys)))
-        return
+        self.ui2.textEdit_2.setText("")
 
     def send_message(self):
         len_keys = int(self.ui2.lineEdit_10.text())
@@ -431,7 +438,6 @@ class ShamirWin(QMainWindow,Ui_Form_Shamir):
             msgShow("Введите или сгенерируйте простое число")
             return
         text = shamir.text_to_blocks_num(text, len_keys)
-        print(text)
         result = []
         for block in text:
             c_a, d_a = shamir.generation_c_and_d(int(p), len_keys)
@@ -447,13 +453,127 @@ class ShamirWin(QMainWindow,Ui_Form_Shamir):
             self.ui2.lineEdit_9.setText(str(x4))
             result.append(str(x4))
             msgShow("Часть сообщения успешно передана")
-        self.ui2.textEdit_2.setText(shamir.blocks_num_to_text(result,len_keys))
+            self.ui2.textEdit_2.insertPlainText(shamir.block_num_to_text(str(x4),len_keys))
+
+class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
+
+    def __init__(self, parent=None):
+        super(ElGamalWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_ElGamal()
+        self.ui2.setupUi(self)
+        self.ui2.action_5.triggered.connect(self.back)
+        self.ui2.action_4.triggered.connect(self.change_len_keys)
+        self.ui2.pushButton.clicked.connect(self.generation_p_g)
+        self.ui2.pushButton_2.clicked.connect(self.send_message)
+        self.ui2.action.triggered.connect(self.open_file_bytes)
+        self.ui2.action_2.triggered.connect(self.open_file)
+        self.ui2.action_3.triggered.connect(self.save_file)
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
+    def change_len_keys(self):
+        choice, ok = QInputDialog.getText(self, 'Change len keys ',
+                                          'Укажите новую длину для ключей от 20 до 200.')
+        if choice.isdigit() and int(choice) >= 20 and int(choice)<= 200:
+            self.ui2.lineEdit_11.setText(choice)
+            self.ui2.label_13.setText("Длина ключей " + choice + " символов.")
+        else:
+            msgShow("Длина чисел задана неверно")
+            return
+        msgShow("Изменения успешно приняты")
+
+    def generation_p_g(self):
+        len_keys = int(self.ui2.lineEdit_11.text())
+        p,g = elgamal.generation_p_g(len_keys)
+        self.ui2.lineEdit.setText(str(p))
+        self.ui2.lineEdit_2.setText(str(g))
+        self.ui2.textEdit_2.clear()
+        return
+
+    def send_message(self):
+        len_keys = int(self.ui2.lineEdit_11.text())
+        text = self.ui2.textEdit.toPlainText()
+        if text == '':
+            msgShow("Нет данных для отправки")
+            return
+        p = self.ui2.lineEdit.text()
+        g = self.ui2.lineEdit_2.text()
+        if p.isdigit() == False or len(p)!=len_keys or g.isdigit() == False \
+                or basic_algorithms.modular_pow(int(g),int(p) - 1,int(p)) != 1:
+            msgShow("Введите или сгенерируйте числа p и g")
+            return
+        blocks = shamir.text_to_blocks_num(text,len_keys)
+        for block in blocks:
+            c_a, d_a = elgamal.generation_c_d(len_keys,int(p),int(g))
+            c_b, d_b = elgamal.generation_c_d(len_keys,int(p),int(g))
+            self.ui2.lineEdit_3.setText(str(c_a))
+            self.ui2.lineEdit_4.setText(str(d_a))
+            self.ui2.lineEdit_8.setText(str(c_b))
+            self.ui2.lineEdit_9.setText(str(d_b))
+            k,r,e = elgamal.calculated_r_e(int(block),int(g),int(p),d_b)
+            self.ui2.lineEdit_5.setText(str(k))
+            self.ui2.lineEdit_6.setText(str(r))
+            self.ui2.lineEdit_7.setText(str(e))
+            m = elgamal.get_m(e,r,int(p),c_b)
+            self.ui2.lineEdit_10.setText(str(m))
+            block_text = shamir.block_num_to_text(block,len_keys)
+            self.ui2.textEdit_2.insertPlainText(block_text)
+            self.repaint()
 
 
 
+    def open_file_bytes(self):
+        bytelist = []
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'rb') as file:
+                for byte in file:
+                    for ch in byte:
+                        bytelist.append(str(ch))
+        except FileNotFoundError:
+            msgShow("Выберите существующий файл")
+            return
+        self.ui2.textEdit.setText(' '.join(bytelist))
 
+    def open_file(self):
+        text = []
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'r') as file:
+                for line in file:
+                    text.append(line)
+        except FileNotFoundError:
+            msgShow("Выберите существующий файл")
+            return
+        self.ui2.textEdit.setText(''.join(text))
 
+    def save_file(self):
+        text_bytes = self.ui2.textEdit_2.toPlainText()
+        if text_bytes == "":
+            msgShow("Нет данных для сохранения")
+            return
 
+        msgShow("Укажите расширение изначального файла.")
+
+        choice, ok = QInputDialog.getText(self, 'File name ', 'input File name')
+        if ok and choice != '':
+            text_bytes = text_bytes.split()
+            if text_bytes[0].isdigit() and int(text_bytes[0]) < 256:
+                text_bytes = rsa.text_to_byte(text_bytes)
+                file = open(choice, 'wb+')
+                for ch in text_bytes:
+                    file.write(ch)
+            else:
+                file = open(choice, 'w+')
+                for line in text_bytes:
+                    file.write(line + ' ')
+            msgShow("Сохранение произошло успешно!")
+            file.close()
+        else:
+            msgShow("Сохранение не произошло.")
 
 
 app = QApplication([])

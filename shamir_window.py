@@ -5,6 +5,8 @@ class Ui_Form_Shamir(object):
     def setupUi(self, Form_Shamir):
         Form_Shamir.setObjectName("Form_Shamir")
         Form_Shamir.resize(563, 450)
+        Form_Shamir.setMinimumSize(QtCore.QSize(563, 450))
+        Form_Shamir.setMaximumSize(QtCore.QSize(563, 450))
         self.centralwidget = QtWidgets.QWidget(Form_Shamir)
         self.centralwidget.setObjectName("centralwidget")
         self.label = QtWidgets.QLabel(self.centralwidget)
