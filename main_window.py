@@ -22,6 +22,8 @@ class Ui_mainWindow(object):
         self.comboBox.addItem("")
         self.comboBox.addItem("")
         self.comboBox.addItem("")
+        self.comboBox.addItem("")
+        self.comboBox.addItem("")
 
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(440, 60, 121, 30))
@@ -60,6 +62,8 @@ class Ui_mainWindow(object):
         self.comboBox.setItemText(3, _translate("mainWindow", "Метод ключевого обмена Диффи-Хелмана"))
         self.comboBox.setItemText(4, _translate("mainWindow", "Криптосистема Шамира"))
         self.comboBox.setItemText(5, _translate("mainWindow", "Криптосистема Эль-Гамаля"))
+        self.comboBox.setItemText(6, _translate("mainWindow", "MD5"))
+        self.comboBox.setItemText(7, _translate("mainWindow", "SHA"))
 
         self.pushButton.setText(_translate("mainWindow", "Далее"))
 

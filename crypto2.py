@@ -10,11 +10,13 @@ from rsa_window import Ui_Form_RSA
 from diffie_hellman_window import Ui_Form_DiffieHellman
 from shamir_window import Ui_Form_Shamir
 from elgamal_window import Ui_Form_ElGamal
+from hash_window import Ui_Form_Hash
 import basic_algorithms
 import rsa
 import diffie_hellman
 import shamir
 import elgamal
+import md5
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -39,6 +41,11 @@ class MainWin(QMainWindow, Ui_mainWindow):
             self.window = ShamirWin()
         elif choice == "Криптосистема Эль-Гамаля":
             self.window = ElGamalWin()
+        elif choice == "MD5":
+            self.window = MD5HashWin()
+        elif choice == "SHA":
+            self.window = SHAHashWin()
+
         self.window.show()
         application.hide()
 
@@ -574,6 +581,87 @@ class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
             file.close()
         else:
             msgShow("Сохранение не произошло.")
+
+class MD5HashWin(QMainWindow, Ui_Form_Hash):
+    def __init__(self, parent=None):
+        super(MD5HashWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_Hash()
+        self.ui2.setupUi(self)
+        self.setWindowTitle("MD5")
+        self.ui2.action_4.triggered.connect(self.back)
+        self.ui2.action.triggered.connect(self.open_file)
+        self.ui2.action_2.triggered.connect(self.open_file_bytes)
+        self.ui2.action_3.triggered.connect(self.save_in_file)
+        self.ui2.pushButton.clicked.connect(self.hash_md5)
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
+    def open_file(self):
+        text = []
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'r') as file:
+                for line in file:
+                    text.append(line)
+        except FileNotFoundError:
+
+            return
+        self.ui2.textEdit.setText(''.join(text))
+
+    def open_file_bytes(self):
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'rb') as file:
+                text = file.read()
+                self.ui2.lineEdit_2.setText("True")
+                self.ui2.label_3.setText(fname)
+        except FileNotFoundError:
+
+            return
+        self.ui2.textEdit.setText(str(text))
+
+    def save_in_file(self):
+        text = self.ui2.lineEdit.text()
+        if text == '':
+            msgShow("Нет данных для сохранения")
+            return
+        choice, ok = QInputDialog.getText(self, 'File names ', 'Укажите имя файла')
+        if ok and choice != '':
+            file = open(choice, 'w+')
+            file.write(text)
+            file.close()
+            return
+
+    def hash_md5(self):
+        text = self.ui2.textEdit.toPlainText()
+        fname = self.ui2.label_3.text()
+        if text == '':
+            msgShow("Нет данных для хэширования")
+            return
+        if fname == "":
+            self.ui2.lineEdit.setText(md5.text_to_hash(text=text))
+        else:
+            self.ui2.lineEdit.setText(md5.text_to_hash(file_name=fname))
+            self.ui2.label_3.setText("")
+
+
+class SHAHashWin(QMainWindow, Ui_Form_Hash):
+    def __init__(self, parent=None):
+        super(SHAHashWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_Hash()
+        self.ui2.setupUi(self)
+        self.setWindowTitle("SHA")
+        self.ui2.action_4.triggered.connect(self.back)
+
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
 
 
 app = QApplication([])

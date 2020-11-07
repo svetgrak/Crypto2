@@ -1,5 +1,4 @@
 import rsa
-import shamir
 import random
 import basic_algorithms
 
