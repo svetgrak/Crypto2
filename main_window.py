@@ -22,12 +22,23 @@ class Ui_mainWindow(object):
         self.comboBox.addItem("")
         self.comboBox.addItem("")
         self.comboBox.addItem("")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
+
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(30, 120, 350, 17))
+        self.label_2.setObjectName("label_2")
+        self.comboBox_2 = QtWidgets.QComboBox(self.centralwidget)
+        self.comboBox_2.setGeometry(QtCore.QRect(30, 150, 350, 30))
+        self.comboBox_2.setObjectName("comboBox_2")
+        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("")
+        self.comboBox_2.addItem("")
 
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(440, 60, 121, 30))
         self.pushButton.setObjectName("pushButton")
+        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_2.setGeometry(QtCore.QRect(440, 150, 121, 30))
+        self.pushButton_2.setObjectName("pushButton_2")
 
 
         self.label_4 = QtWidgets.QLabel(self.centralwidget)
@@ -62,10 +73,13 @@ class Ui_mainWindow(object):
         self.comboBox.setItemText(3, _translate("mainWindow", "Метод ключевого обмена Диффи-Хелмана"))
         self.comboBox.setItemText(4, _translate("mainWindow", "Криптосистема Шамира"))
         self.comboBox.setItemText(5, _translate("mainWindow", "Криптосистема Эль-Гамаля"))
-        self.comboBox.setItemText(6, _translate("mainWindow", "MD5"))
-        self.comboBox.setItemText(7, _translate("mainWindow", "SHA"))
 
+        self.label_2.setText(_translate("mainWindow", "Алгоритмы хэширования :"))
+        self.comboBox_2.setItemText(0, _translate("mainWindow", ""))
+        self.comboBox_2.setItemText(1, _translate("mainWindow", "MD5"))
+        self.comboBox_2.setItemText(2, _translate("mainWindow", "SHA-1"))
         self.pushButton.setText(_translate("mainWindow", "Далее"))
+        self.pushButton_2.setText(_translate("mainWindow", "Далее"))
 
         self.label_4.setText(_translate("mainWindow", "Created by svetgrak "))
 

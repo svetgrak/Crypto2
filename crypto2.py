@@ -1,7 +1,5 @@
 import sys
-import time
 
-from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QInputDialog
 
 from basic_algorithms_window import Ui_BasicAlgWindow
@@ -17,6 +15,7 @@ import diffie_hellman
 import shamir
 import elgamal
 import md5
+import sha1
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -25,9 +24,11 @@ class MainWin(QMainWindow, Ui_mainWindow):
         super(MainWin, self).__init__()
         self.ui = Ui_mainWindow()
         self.ui.setupUi(self)
-        self.ui.pushButton.clicked.connect(self.open_next_win)
+        self.ui.pushButton.clicked.connect(self.open_next_win_1)
+        self.ui.pushButton_2.clicked.connect(self.open_next_win_2)
 
-    def open_next_win(self):
+    def open_next_win_1(self):
+
         choice = str(self.ui.comboBox.currentText())
         if choice == "":
             msgShow("Выберите алгоритм из списка")
@@ -41,13 +42,25 @@ class MainWin(QMainWindow, Ui_mainWindow):
             self.window = ShamirWin()
         elif choice == "Криптосистема Эль-Гамаля":
             self.window = ElGamalWin()
+        try:
+            self.window.show()
+            application.hide()
+        except AttributeError:
+            return
+
+    def open_next_win_2(self):
+        choice = str(self.ui.comboBox_2.currentText())
+        if choice == "":
+            msgShow("Выберите алгоритм из списка")
         elif choice == "MD5":
             self.window = MD5HashWin()
-        elif choice == "SHA":
+        elif choice == "SHA-1":
             self.window = SHAHashWin()
-
-        self.window.show()
-        application.hide()
+        try:
+            self.window.show()
+            application.hide()
+        except AttributeError:
+            return
 
 class BasicAlgWin(QMainWindow, Ui_BasicAlgWindow):
 
@@ -642,11 +655,10 @@ class MD5HashWin(QMainWindow, Ui_Form_Hash):
             msgShow("Нет данных для хэширования")
             return
         if fname == "":
-            self.ui2.lineEdit.setText(md5.text_to_hash(text=text))
+            self.ui2.lineEdit.setText(md5.data_to_md5(text=text))
         else:
-            self.ui2.lineEdit.setText(md5.text_to_hash(file_name=fname))
+            self.ui2.lineEdit.setText(md5.data_to_md5(file_name=fname))
             self.ui2.label_3.setText("")
-
 
 class SHAHashWin(QMainWindow, Ui_Form_Hash):
     def __init__(self, parent=None):
@@ -656,11 +668,63 @@ class SHAHashWin(QMainWindow, Ui_Form_Hash):
         self.ui2.setupUi(self)
         self.setWindowTitle("SHA")
         self.ui2.action_4.triggered.connect(self.back)
+        self.ui2.action.triggered.connect(self.open_file)
+        self.ui2.action_2.triggered.connect(self.open_file_bytes)
+        self.ui2.action_3.triggered.connect(self.save_in_file)
+        self.ui2.pushButton.clicked.connect(self.hash_sha1)
 
 
     def back(self):
         application.show()
         self.window().hide()
+
+    def open_file(self):
+        text = []
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'r') as file:
+                for line in file:
+                    text.append(line)
+        except FileNotFoundError:
+
+            return
+        self.ui2.textEdit.setText(''.join(text))
+
+    def open_file_bytes(self):
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'rb') as file:
+                text = file.read()
+                self.ui2.lineEdit_2.setText("True")
+                self.ui2.label_3.setText(fname)
+        except FileNotFoundError:
+
+            return
+        self.ui2.textEdit.setText(str(text))
+
+    def save_in_file(self):
+        text = self.ui2.lineEdit.text()
+        if text == '':
+            msgShow("Нет данных для сохранения")
+            return
+        choice, ok = QInputDialog.getText(self, 'File names ', 'Укажите имя файла')
+        if ok and choice != '':
+            file = open(choice, 'w+')
+            file.write(text)
+            file.close()
+            return
+
+    def hash_sha1(self):
+        text = self.ui2.textEdit.toPlainText()
+        fname = self.ui2.label_3.text()
+        if text == '':
+            msgShow("Нет данных для хэширования")
+            return
+        if fname == "":
+            self.ui2.lineEdit.setText(sha1.data_to_sha1(text=text))
+        else:
+            self.ui2.lineEdit.setText(sha1.data_to_sha1(file_name=fname))
+            self.ui2.label_3.setText("")
 
 
 
