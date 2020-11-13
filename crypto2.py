@@ -1,7 +1,5 @@
 import sys
-
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QInputDialog
-
 from basic_algorithms_window import Ui_BasicAlgWindow
 from main_window import Ui_mainWindow
 from rsa_window import Ui_Form_RSA
@@ -9,6 +7,7 @@ from diffie_hellman_window import Ui_Form_DiffieHellman
 from shamir_window import Ui_Form_Shamir
 from elgamal_window import Ui_Form_ElGamal
 from hash_window import Ui_Form_Hash
+from digital_signature_rsa_window import Ui_Form_DigSignRsa
 import basic_algorithms
 import rsa
 import diffie_hellman
@@ -16,6 +15,7 @@ import shamir
 import elgamal
 import md5
 import sha1
+import digital_signature_rsa
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -26,6 +26,7 @@ class MainWin(QMainWindow, Ui_mainWindow):
         self.ui.setupUi(self)
         self.ui.pushButton.clicked.connect(self.open_next_win_1)
         self.ui.pushButton_2.clicked.connect(self.open_next_win_2)
+        self.ui.pushButton_3.clicked.connect(self.open_next_win_3)
 
     def open_next_win_1(self):
 
@@ -56,6 +57,20 @@ class MainWin(QMainWindow, Ui_mainWindow):
             self.window = MD5HashWin()
         elif choice == "SHA-1":
             self.window = SHAHashWin()
+        try:
+            self.window.show()
+            application.hide()
+        except AttributeError:
+            return
+
+    def open_next_win_3(self):
+        choice = str(self.ui.comboBox_3.currentText())
+        if choice == "":
+            msgShow("Выберите алгоритм из списка")
+        elif choice == "на базе RSA":
+            self.window = DigSignRSAWin()
+        elif choice == "на базе Эль-Гамаля":
+            msgShow("В процессе")
         try:
             self.window.show()
             application.hide()
@@ -232,7 +247,7 @@ class RSAWin(QMainWindow, Ui_Form_RSA):
                 return
             try:
                 file = open(choice[0], 'r')
-                e = file.readline()[:-2]
+                e = file.readline()[:-1]
                 n = file.readline()
                 file.close()
                 if e.isdigit() == False and n.isdigit() == False:
@@ -726,7 +741,167 @@ class SHAHashWin(QMainWindow, Ui_Form_Hash):
             self.ui2.lineEdit.setText(sha1.data_to_sha1(file_name=fname))
             self.ui2.label_3.setText("")
 
+class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
 
+    def __init__(self, parent=None):
+        super(DigSignRSAWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_DigSignRsa()
+        self.ui2.setupUi(self)
+        self.ui2.action_3.triggered.connect(self.back)
+        self.ui2.pushButton.clicked.connect(self.get_digital_signature)
+        self.ui2.pushButton_2.clicked.connect(self.send_data_signature)
+        self.ui2.pushButton_3.clicked.connect(self.get_keys)
+        self.ui2.pushButton_4.clicked.connect(self.check_signature)
+        self.ui2.action.triggered.connect(self.open_file_bytes)
+        self.ui2.action_2.triggered.connect(self.change_len_keys)
+        self.ui2.action_5.triggered.connect(self.save_keys_signature)
+        self.ui2.action_4.triggered.connect(self.download_keys_signature)
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
+    def get_digital_signature(self):
+        text = self.ui2.textEdit.toPlainText()
+        if text == "":
+            msgShow("Введите или загрузите текст")
+            return
+        hash = str(self.ui2.comboBox.currentText())
+        len_keys = self.ui2.label_13.text()
+        N, d, c = digital_signature_rsa.generation_keys(int(len_keys))
+        self.ui2.lineEdit.setText(str(N))
+        self.ui2.lineEdit_2.setText(str(d))
+        self.ui2.lineEdit_3.setText(str(c))
+        s = digital_signature_rsa.get_signature(text,hash,c,N)
+        self.ui2.lineEdit_4.setText(str(s))
+
+    def send_data_signature(self):
+        text = self.ui2.textEdit.toPlainText()
+        signature = self.ui2.lineEdit_4.text()
+        if text == "" or signature == "":
+            msgShow("Получите данные с подписью для проверки")
+            return
+        self.ui2.textEdit_2.setText(text)
+        self.ui2.lineEdit_5.setText(signature)
+
+    def get_keys(self):
+        N = self.ui2.lineEdit.text()
+        d = self.ui2.lineEdit_2.text()
+        if N == "" or d == "":
+            msgShow("Пользователь не размещал открытые ключи")
+            return
+        self.ui2.lineEdit_6.setText(N)
+        self.ui2.lineEdit_7.setText(d)
+        return
+
+    def check_signature(self):
+        text = self.ui2.textEdit_2.toPlainText()
+        s = self.ui2.lineEdit_5.text()
+        d = self.ui2.lineEdit_7.text()
+        N = self.ui2.lineEdit_6.text()
+        if text == "" or s == "" or d == "" or N == "":
+            msgShow("Вы не получили данные от пользователя")
+            return
+        hash = str(self.ui2.comboBox.currentText())
+        if digital_signature_rsa.check_signature(text,hash,int(s),int(d),int(N)):
+            self.ui2.lineEdit_8.setText("Подпись верна")
+        else:
+            self.ui2.lineEdit_8.setText("Подпись не верна")
+        return
+
+    def open_file_bytes(self):
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'rb') as file:
+                text = file.read()
+        except FileNotFoundError:
+            return
+        self.ui2.textEdit.setText(str(text))
+
+    def save_keys_signature(self):
+        N = self.ui2.lineEdit.text()
+        d = self.ui2.lineEdit_2.text()
+        c = self.ui2.lineEdit_3.text()
+        s = self.ui2.lineEdit_4.text()
+        if N == "" or d == "" or c == "" or s =="":
+            msgShow("Нет данных для сохранения")
+            return
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для открытых, \nзакрытого ключей и подписи через пробел')
+        if ok and choice != '':
+            choice = choice.split()
+            if len(choice) != 3:
+                msgShow("Введите 3 файла")
+                return
+            try:
+                file = open(choice[0], 'w+')
+                file.write(N + '\n' + d)
+                file.close()
+                file = open(choice[1], 'w+')
+                file.write(c)
+                file.close()
+                file = open(choice[2], 'w+')
+                file.write(s)
+                file.close()
+            except FileNotFoundError:
+                return
+            msgShow("Данные успешно сохранены")
+        else:
+            msgShow("Сохранение не произошло")
+
+    def download_keys_signature(self):
+        len_keys = int(self.ui2.label_13.text())
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для открытых \nзакрытого ключей и подписи через пробел')
+        if ok and choice != '':
+            choice = choice.split()
+            if len(choice) != 3:
+                msgShow("Введите 3 файла")
+                return
+            try:
+                file = open(choice[0], 'r')
+                N = file.readline()[:-1]
+                d = file.readline()
+                file.close()
+                if N.isdigit() == False or d.isdigit() == False:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.label_13.setText(str(len(N)))
+                self.ui2.label_15.setText("Длина ключей " + str(len(N)) + " символов.")
+                self.ui2.lineEdit.setText(N)
+                self.ui2.lineEdit_2.setText(d)
+
+                file = open(choice[1], 'r')
+                c = file.read()
+                file.close()
+                if c.isdigit() == False or len(c)<len_keys:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.lineEdit_3.setText(c)
+
+                file = open(choice[2], 'r')
+                s = file.read()
+                file.close()
+                if s.isdigit() == False:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.lineEdit_4.setText(s)
+            except FileNotFoundError:
+                msgShow("Выберите существующие файлы")
+                return
+        return
+
+    def change_len_keys(self):
+        choice, ok = QInputDialog.getText(self, 'Change len keys ',
+                                          'Укажите новую длину для ключей от 50 до 200.')
+        if choice.isdigit() and int(choice) >= 50 and int(choice) <= 200:
+            self.ui2.label_13.setText(choice)
+            self.ui2.label_15.setText("Длина ключей " + choice + " символов.")
+        else:
+            msgShow("Длина ключей задана неверно")
+            return
+        msgShow("Изменения успешно приняты")
 
 app = QApplication([])
 application = MainWin()
