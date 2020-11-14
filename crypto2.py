@@ -8,6 +8,7 @@ from shamir_window import Ui_Form_Shamir
 from elgamal_window import Ui_Form_ElGamal
 from hash_window import Ui_Form_Hash
 from digital_signature_rsa_window import Ui_Form_DigSignRsa
+from digital_signature_elgamal_window import Ui_Form_DigSignElGamal
 import basic_algorithms
 import rsa
 import diffie_hellman
@@ -16,6 +17,7 @@ import elgamal
 import md5
 import sha1
 import digital_signature_rsa
+import digital_signature_elgamal
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -70,12 +72,13 @@ class MainWin(QMainWindow, Ui_mainWindow):
         elif choice == "на базе RSA":
             self.window = DigSignRSAWin()
         elif choice == "на базе Эль-Гамаля":
-            msgShow("В процессе")
+            self.window = DigSignElGamalWin()
         try:
             self.window.show()
             application.hide()
         except AttributeError:
             return
+
 
 class BasicAlgWin(QMainWindow, Ui_BasicAlgWindow):
 
@@ -119,6 +122,7 @@ class BasicAlgWin(QMainWindow, Ui_BasicAlgWindow):
     def back(self):
         application.show()
         self.window().hide()
+
 
 class RSAWin(QMainWindow, Ui_Form_RSA):
 
@@ -232,14 +236,15 @@ class RSAWin(QMainWindow, Ui_Form_RSA):
             else:
                 file = open(choice, 'w+')
                 for line in text_bytes:
-                    file.write(line+' ')
+                    file.write(line + ' ')
             msgShow("Сохранение произошло успешно!")
             file.close()
         else:
             msgShow("Сохранение не произошло.")
 
     def download_keys(self):
-        choice, ok = QInputDialog.getText(self, 'File names ', 'Укажите имена файлов для открытых \n и закрытого ключей через пробел')
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для открытых \n и закрытого ключей через пробел')
         if ok and choice != '':
             choice = choice.split()
             if len(choice) != 2:
@@ -254,7 +259,7 @@ class RSAWin(QMainWindow, Ui_Form_RSA):
                     msgShow("Ключи не удовлетворяют формату")
                     return
                 self.ui2.lineEdit_4.setText(str(len(n)))
-                self.ui2.label_8.setText("Длина ключей "+ str(len(n))+ " символов.")
+                self.ui2.label_8.setText("Длина ключей " + str(len(n)) + " символов.")
                 self.ui2.lineEdit.setText(e)
                 self.ui2.lineEdit_2.setText(n)
                 file = open(choice[1], 'r')
@@ -274,7 +279,7 @@ class RSAWin(QMainWindow, Ui_Form_RSA):
     def change_len_keys(self):
         choice, ok = QInputDialog.getText(self, 'Change len keys ',
                                           'Укажите новую длину для ключей от 20 до 200.')
-        if choice.isdigit() and int(choice) >= 20 and int(choice)<= 200:
+        if choice.isdigit() and int(choice) >= 20 and int(choice) <= 200:
             self.ui2.lineEdit_4.setText(choice)
             self.ui2.label_8.setText("Длина ключей " + choice + " символов.")
         else:
@@ -290,15 +295,16 @@ class RSAWin(QMainWindow, Ui_Form_RSA):
                 len_keys) and d == '' and d.isdigit() == False and len(d) != int(len_keys):
             msgShow("Ключи не удовлетворяют формату")
             return
-        choice, ok = QInputDialog.getText(self, 'File names ', 'Укажите имена файлов для открытых \n и закрытого ключей через пробел')
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для открытых \n и закрытого ключей через пробел')
         if ok and choice != '':
             choice = choice.split()
-            if len(choice)!= 2:
+            if len(choice) != 2:
                 msgShow("Введите 2 файла")
                 return
             try:
                 file = open(choice[0], 'w+')
-                file.write(e + '\n'+n)
+                file.write(e + '\n' + n)
                 file.close()
                 file = open(choice[1], 'w+')
                 file.write(d)
@@ -309,6 +315,7 @@ class RSAWin(QMainWindow, Ui_Form_RSA):
             msgShow("Ключи успешно сохранены")
         else:
             msgShow("Сохранение не произошло")
+
 
 class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
     def __init__(self, parent=None):
@@ -329,15 +336,15 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
         self.ui2.action.setStatusTip("Вернуться к выбору алгоритма")
         self.ui2.action_2.setStatusTip("Установить свою длину генерируемых ключей (от 20 знаков до 200)")
 
-
     def back(self):
         application.show()
         self.window().hide()
 
     def gener_a_g_p(self):
-        msgShow("Возможна долгая генерация чисел. \nУменьшите длину чисел, если хотите ускорить генерацию.\nЗакройте это окно")
+        msgShow(
+            "Возможна долгая генерация чисел. \nУменьшите длину чисел, если хотите ускорить генерацию.\nЗакройте это окно")
         len_num = int(self.ui2.lineEdit_13.text())
-        a,g,p = diffie_hellman.generation_a_g_p(len_num)
+        a, g, p = diffie_hellman.generation_a_g_p(len_num)
         self.ui2.lineEdit.setText(str(a))
         self.ui2.lineEdit_2.setText(str(g))
         self.ui2.lineEdit_3.setText(str(p))
@@ -355,8 +362,9 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
         g = self.ui2.lineEdit_2.text()
         p = self.ui2.lineEdit_3.text()
 
-        if a.isdigit() and g.isdigit() and p.isdigit() and len(a) == len_num and len(g) == len_num and len(p) == len_num:
-            self.ui2.lineEdit_4.setText(str(diffie_hellman.calculated(int(g),int(a),int(p))))
+        if a.isdigit() and g.isdigit() and p.isdigit() and len(a) == len_num and len(g) == len_num and len(
+                p) == len_num:
+            self.ui2.lineEdit_4.setText(str(diffie_hellman.calculated(int(g), int(a), int(p))))
             msgShow("Получите от клиента Bob число B")
         else:
             msgShow("Введите или сгенерируйте числа")
@@ -379,8 +387,9 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
         g = self.ui2.lineEdit_6.text()
         b = self.ui2.lineEdit_5.text()
         p = self.ui2.lineEdit_7.text()
-        if g.isdigit() and b.isdigit() and p.isdigit() and len(g) == len_num and len(b) == len_num and len(p) == len_num:
-            self.ui2.lineEdit_9.setText(str(diffie_hellman.calculated(int(g),int(b),int(p))))
+        if g.isdigit() and b.isdigit() and p.isdigit() and len(g) == len_num and len(b) == len_num and len(
+                p) == len_num:
+            self.ui2.lineEdit_9.setText(str(diffie_hellman.calculated(int(g), int(b), int(p))))
             msgShow("Отправьте клиенту Alice число B и рассчитайте общий ключ")
         else:
             msgShow("Введите или получите числа")
@@ -399,13 +408,13 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
         a = self.ui2.lineEdit.text()
         p = self.ui2.lineEdit_3.text()
         if B.isdigit() and a.isdigit() and p.isdigit() and len(a) == len_num and len(p) == len_num:
-            self.ui2.lineEdit_11.setText(str(diffie_hellman.calculated(int(B),int(a),int(p))))
+            self.ui2.lineEdit_11.setText(str(diffie_hellman.calculated(int(B), int(a), int(p))))
         else:
             msgShow("Введите или получите числа")
         key_first = self.ui2.lineEdit_11.text()
         key_second = self.ui2.lineEdit_12.text()
         if key_first == key_second:
-            msgShow("Общий ключ рассчитан \n"+ key_first)
+            msgShow("Общий ключ рассчитан \n" + key_first)
 
     def calculated_key_second(self):
         len_num = int(self.ui2.lineEdit_13.text())
@@ -413,7 +422,7 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
         b = self.ui2.lineEdit_5.text()
         p = self.ui2.lineEdit_7.text()
         if A.isdigit() and b.isdigit() and p.isdigit() and len(b) == len_num and len(p) == len_num:
-            self.ui2.lineEdit_12.setText(str(diffie_hellman.calculated(int(A),int(b),int(p))))
+            self.ui2.lineEdit_12.setText(str(diffie_hellman.calculated(int(A), int(b), int(p))))
         else:
             msgShow("Введите или получите числа")
         key_first = self.ui2.lineEdit_11.text()
@@ -424,7 +433,7 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
     def change_len_num(self):
         choice, ok = QInputDialog.getText(self, 'Change len keys ',
                                           'Укажите новую длину для чисел от 20 до 200.')
-        if choice.isdigit() and int(choice) >= 20 and int(choice)<= 200:
+        if choice.isdigit() and int(choice) >= 20 and int(choice) <= 200:
             self.ui2.lineEdit_13.setText(choice)
             self.ui2.label_15.setText("Длина чисел " + choice + " символов.")
         else:
@@ -432,7 +441,8 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
             return
         msgShow("Изменения успешно приняты")
 
-class ShamirWin(QMainWindow,Ui_Form_Shamir):
+
+class ShamirWin(QMainWindow, Ui_Form_Shamir):
     def __init__(self, parent=None):
         super(ShamirWin, self).__init__(parent)
         self.setupUi(self)
@@ -452,7 +462,7 @@ class ShamirWin(QMainWindow,Ui_Form_Shamir):
     def change_len_keys(self):
         choice, ok = QInputDialog.getText(self, 'Change len keys ',
                                           'Укажите новую длину для ключей от 20 до 200.')
-        if choice.isdigit() and int(choice) >= 20 and int(choice)<= 200:
+        if choice.isdigit() and int(choice) >= 20 and int(choice) <= 200:
             self.ui2.lineEdit_10.setText(choice)
             self.ui2.label_12.setText("Длина ключей " + choice + " символов.")
         else:
@@ -473,7 +483,7 @@ class ShamirWin(QMainWindow,Ui_Form_Shamir):
             return
 
         p = self.ui2.lineEdit.text()
-        if p.isdigit() == False or len(p)!=len_keys:
+        if p.isdigit() == False or len(p) != len_keys:
             msgShow("Введите или сгенерируйте простое число")
             return
         text = shamir.text_to_blocks_num(text, len_keys)
@@ -485,14 +495,15 @@ class ShamirWin(QMainWindow,Ui_Form_Shamir):
             self.ui2.lineEdit_3.setText(str(d_a))
             self.ui2.lineEdit_4.setText(str(c_b))
             self.ui2.lineEdit_5.setText(str(d_b))
-            x1,x2,x3,x4 = shamir.send_block(int(block),c_a,d_a,c_b,d_b,int(p))
+            x1, x2, x3, x4 = shamir.send_block(int(block), c_a, d_a, c_b, d_b, int(p))
             self.ui2.lineEdit_6.setText(str(x1))
             self.ui2.lineEdit_7.setText(str(x2))
             self.ui2.lineEdit_8.setText(str(x3))
             self.ui2.lineEdit_9.setText(str(x4))
             result.append(str(x4))
             msgShow("Часть сообщения успешно передана")
-            self.ui2.textEdit_2.insertPlainText(shamir.block_num_to_text(str(x4),len_keys))
+            self.ui2.textEdit_2.insertPlainText(shamir.block_num_to_text(str(x4), len_keys))
+
 
 class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
 
@@ -521,7 +532,7 @@ class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
     def change_len_keys(self):
         choice, ok = QInputDialog.getText(self, 'Change len keys ',
                                           'Укажите новую длину для ключей от 20 до 200.')
-        if choice.isdigit() and int(choice) >= 20 and int(choice)<= 200:
+        if choice.isdigit() and int(choice) >= 20 and int(choice) <= 200:
             self.ui2.lineEdit_11.setText(choice)
             self.ui2.label_13.setText("Длина ключей " + choice + " символов.")
         else:
@@ -531,7 +542,7 @@ class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
 
     def generation_p_g(self):
         len_keys = int(self.ui2.lineEdit_11.text())
-        p,g = elgamal.generation_p_g(len_keys)
+        p, g = elgamal.generation_p_g(len_keys)
         self.ui2.lineEdit.setText(str(p))
         self.ui2.lineEdit_2.setText(str(g))
         self.ui2.textEdit_2.clear()
@@ -545,29 +556,27 @@ class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
             return
         p = self.ui2.lineEdit.text()
         g = self.ui2.lineEdit_2.text()
-        if p.isdigit() == False or len(p)!=len_keys or g.isdigit() == False \
-                or basic_algorithms.modular_pow(int(g),int(p) - 1,int(p)) != 1:
+        if p.isdigit() == False or len(p) != len_keys or g.isdigit() == False \
+                or basic_algorithms.modular_pow(int(g), int(p) - 1, int(p)) != 1:
             msgShow("Введите или сгенерируйте числа p и g")
             return
-        blocks = shamir.text_to_blocks_num(text,len_keys)
+        blocks = shamir.text_to_blocks_num(text, len_keys)
         for block in blocks:
-            c_a, d_a = elgamal.generation_c_d(len_keys,int(p),int(g))
-            c_b, d_b = elgamal.generation_c_d(len_keys,int(p),int(g))
+            c_a, d_a = elgamal.generation_c_d(len_keys, int(p), int(g))
+            c_b, d_b = elgamal.generation_c_d(len_keys, int(p), int(g))
             self.ui2.lineEdit_3.setText(str(c_a))
             self.ui2.lineEdit_4.setText(str(d_a))
             self.ui2.lineEdit_8.setText(str(c_b))
             self.ui2.lineEdit_9.setText(str(d_b))
-            k,r,e = elgamal.calculated_r_e(int(block),int(g),int(p),d_b)
+            k, r, e = elgamal.calculated_r_e(int(block), int(g), int(p), d_b)
             self.ui2.lineEdit_5.setText(str(k))
             self.ui2.lineEdit_6.setText(str(r))
             self.ui2.lineEdit_7.setText(str(e))
-            m = elgamal.get_m(e,r,int(p),c_b)
+            m = elgamal.get_m(e, r, int(p), c_b)
             self.ui2.lineEdit_10.setText(str(m))
-            block_text = shamir.block_num_to_text(block,len_keys)
+            block_text = shamir.block_num_to_text(block, len_keys)
             self.ui2.textEdit_2.insertPlainText(block_text)
             self.repaint()
-
-
 
     def open_file_bytes(self):
         bytelist = []
@@ -619,6 +628,7 @@ class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
         else:
             msgShow("Сохранение не произошло.")
 
+
 class MD5HashWin(QMainWindow, Ui_Form_Hash):
     def __init__(self, parent=None):
         super(MD5HashWin, self).__init__(parent)
@@ -635,7 +645,6 @@ class MD5HashWin(QMainWindow, Ui_Form_Hash):
         self.ui2.action_2.setStatusTip("Загрузить файл для хэширования")
         self.ui2.action_3.setStatusTip("Загрузить результат в файл")
         self.ui2.action_4.setStatusTip("Вернуться к выбору алгоритма")
-
 
     def back(self):
         application.show()
@@ -689,6 +698,7 @@ class MD5HashWin(QMainWindow, Ui_Form_Hash):
             self.ui2.lineEdit.setText(md5.data_to_md5(file_name=fname))
             self.ui2.label_3.setText("")
 
+
 class SHAHashWin(QMainWindow, Ui_Form_Hash):
     def __init__(self, parent=None):
         super(SHAHashWin, self).__init__(parent)
@@ -705,7 +715,6 @@ class SHAHashWin(QMainWindow, Ui_Form_Hash):
         self.ui2.action_2.setStatusTip("Загрузить файл для хэширования")
         self.ui2.action_3.setStatusTip("Загрузить результат в файл")
         self.ui2.action_4.setStatusTip("Вернуться к выбору алгоритма")
-
 
     def back(self):
         application.show()
@@ -759,6 +768,7 @@ class SHAHashWin(QMainWindow, Ui_Form_Hash):
             self.ui2.lineEdit.setText(sha1.data_to_sha1(file_name=fname))
             self.ui2.label_3.setText("")
 
+
 class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
 
     def __init__(self, parent=None):
@@ -781,7 +791,6 @@ class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
         self.ui2.action_4.setStatusTip("Загрузить открытые и закрытый ключи и электронную подпись (из 3-х файлов)")
         self.ui2.action_5.setStatusTip("Сохранить открытые и закрытый ключи и электронную подпись (в 3 файла)")
 
-
     def back(self):
         application.show()
         self.window().hide()
@@ -797,7 +806,7 @@ class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
         self.ui2.lineEdit.setText(str(N))
         self.ui2.lineEdit_2.setText(str(d))
         self.ui2.lineEdit_3.setText(str(c))
-        s = digital_signature_rsa.get_signature(text,hash,c,N)
+        s = digital_signature_rsa.get_signature(text, hash, c, N)
         self.ui2.lineEdit_4.setText(str(s))
 
     def send_data_signature(self):
@@ -828,7 +837,7 @@ class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
             msgShow("Вы не получили данные от пользователя")
             return
         hash = str(self.ui2.comboBox.currentText())
-        if digital_signature_rsa.check_signature(text,hash,int(s),int(d),int(N)):
+        if digital_signature_rsa.check_signature(text, hash, int(s), int(d), int(N)):
             self.ui2.lineEdit_8.setText("Подпись верна")
         else:
             self.ui2.lineEdit_8.setText("Подпись не верна")
@@ -848,7 +857,7 @@ class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
         d = self.ui2.lineEdit_2.text()
         c = self.ui2.lineEdit_3.text()
         s = self.ui2.lineEdit_4.text()
-        if N == "" or d == "" or c == "" or s =="":
+        if N == "" or d == "" or c == "" or s == "":
             msgShow("Нет данных для сохранения")
             return
         choice, ok = QInputDialog.getText(self, 'File names ',
@@ -899,7 +908,7 @@ class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
                 file = open(choice[1], 'r')
                 c = file.read()
                 file.close()
-                if c.isdigit() == False or len(c)<len_keys:
+                if c.isdigit() == False or len(c) < len_keys:
                     msgShow("Данные не удовлетворяют формату")
                     return
                 self.ui2.lineEdit_3.setText(c)
@@ -926,6 +935,182 @@ class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
             msgShow("Длина ключей задана неверно")
             return
         msgShow("Изменения успешно приняты")
+
+
+class DigSignElGamalWin(QMainWindow, Ui_Form_DigSignElGamal):
+    def __init__(self, parent=None):
+        super(DigSignElGamalWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_DigSignElGamal()
+        self.ui2.setupUi(self)
+        self.ui2.action_5.triggered.connect(self.back)
+        self.ui2.pushButton_2.clicked.connect(self.get_digital_signature)
+        self.ui2.pushButton_3.clicked.connect(self.send_data_signature)
+        self.ui2.pushButton_4.clicked.connect(self.get_key)
+        self.ui2.pushButton.clicked.connect(self.check_signature)
+        self.ui2.action.triggered.connect(self.open_file_bytes)
+        self.ui2.action_2.triggered.connect(self.download_keys_signature)
+        self.ui2.action_3.triggered.connect(self.save_keys_signature)
+        self.ui2.action_4.triggered.connect(self.change_len_keys)
+        self.ui2.action.setStatusTip("Загрузить файл для получения электронной подписи")
+        self.ui2.action_2.setStatusTip("Загрузить открытыe и закрытый ключи и электронную подпись (из 3-х файлов)")
+        self.ui2.action_3.setStatusTip("Сохранить открытыe и закрытый ключи и электронную подпись (в 3 файла)")
+        self.ui2.action_4.setStatusTip("Установить свою длину генерируемых ключей (от 50 знаков до 200)")
+        self.ui2.action_5.setStatusTip("Вернуться к выбору алгоритма")
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
+    def get_digital_signature(self):
+        text = self.ui2.textEdit.toPlainText()
+        if text == "":
+            msgShow("Нет данных для подписи")
+            return
+        len_keys = int(self.ui2.label_16.text())
+        hash = str(self.ui2.comboBox.currentText())
+        p, g = digital_signature_elgamal.generation_p_g(len_keys)
+
+        x, y = digital_signature_elgamal.generation_keys(p, g)
+        self.ui2.lineEdit.setText(str(p))
+        self.ui2.lineEdit_2.setText(str(g))
+        self.ui2.lineEdit_3.setText(str(x))
+        self.ui2.lineEdit_4.setText(str(y))
+        r, s = digital_signature_elgamal.get_signature(text, hash, p, g, x)
+        self.ui2.lineEdit_5.setText(str(r)+' '+str(s))
+
+    def send_data_signature(self):
+        text = self.ui2.textEdit.toPlainText()
+        signature = self.ui2.lineEdit_5.text()
+        if text == "" or signature=="":
+            msgShow("Нет данных для отправки")
+            return
+        self.ui2.textEdit_2.setText(text)
+        self.ui2.lineEdit_6.setText(signature)
+
+    def get_key(self):
+        p = self.ui2.lineEdit.text()
+        g = self.ui2.lineEdit_2.text()
+        y = self.ui2.lineEdit_4.text()
+        if p == "" or g == "" or y == "":
+            msgShow("Пользователь не размещал данные")
+            return
+        self.ui2.lineEdit_7.setText(str(p))
+        self.ui2.lineEdit_8.setText(str(g))
+        self.ui2.lineEdit_9.setText(str(y))
+
+    def check_signature(self):
+        text = self.ui2.textEdit_2.toPlainText()
+        y = self.ui2.lineEdit_9.text()
+        signature = self.ui2.lineEdit_6.text()
+        p = self.ui2.lineEdit_7.text()
+        g = self.ui2.lineEdit_8.text()
+        if text == "" or signature== "" or p == "":
+            msgShow("Не хватает данных для проверки")
+            return
+        r,s = signature.split(" ")
+        hash = str(self.ui2.comboBox.currentText())
+        if digital_signature_elgamal.check_signature(text, hash, int(y), int(r), int(s), int(p), int(g)):
+            self.ui2.lineEdit_10.setText("Подпись верна")
+        else:
+            self.ui2.lineEdit_10.setText("Подпись не верна")
+
+    def open_file_bytes(self):
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'rb') as file:
+                text = file.read()
+        except FileNotFoundError:
+            return
+        self.ui2.textEdit.setText(str(text))
+
+    def save_keys_signature(self):
+        p = self.ui2.lineEdit.text()
+        g = self.ui2.lineEdit_2.text()
+        x = self.ui2.lineEdit_3.text()
+        y = self.ui2.lineEdit_4.text()
+        signature = self.ui2.lineEdit_5.text()
+        if p == "" or g == "" or x == "" or y == "":
+            msgShow("Нет данных для сохранения")
+            return
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для открытых, \nзакрытого ключей и подписи через пробел')
+        if ok and choice != '':
+            choice = choice.split()
+            if len(choice) != 3:
+                msgShow("Введите 3 файла")
+                return
+            try:
+                file = open(choice[0], 'w+')
+                file.write(p + '\n' + g + '\n' + y)
+                file.close()
+                file = open(choice[1], 'w+')
+                file.write(x)
+                file.close()
+                file = open(choice[2], 'w+')
+                file.write(signature)
+                file.close()
+            except FileNotFoundError:
+                return
+            msgShow("Данные успешно сохранены")
+        else:
+            msgShow("Сохранение не произошло")
+
+    def download_keys_signature(self):
+        len_keys = int(self.ui2.label_16.text())
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для открытых \nзакрытого ключей и подписи через пробел')
+        if ok and choice != '':
+            choice = choice.split()
+            if len(choice) != 3:
+                msgShow("Введите 3 файла")
+                return
+            try:
+                file = open(choice[0], 'r')
+                p = file.readline()[:-1]
+                g = file.readline()[:-1]
+                y = file.readline()
+                file.close()
+                if p.isdigit() == False or g.isdigit() == False or y.isdigit()== False:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.label_16.setText(str(len(p)))
+                self.ui2.label_15.setText("Длина ключей " + str(len(p)) + " символов.")
+                self.ui2.lineEdit.setText(p)
+                self.ui2.lineEdit_2.setText(g)
+                self.ui2.lineEdit_4.setText(y)
+
+                file = open(choice[1], 'r')
+                x = file.read()
+                file.close()
+                if x.isdigit() == False:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.lineEdit_3.setText(x)
+
+                file = open(choice[2], 'r')
+                signature = file.read()
+                file.close()
+                if signature.replace(' ', '').isdigit() == False  or len(signature.split(" ")) != 2:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.lineEdit_5.setText(signature)
+            except FileNotFoundError:
+                msgShow("Выберите существующие файлы")
+                return
+        return
+
+    def change_len_keys(self):
+        choice, ok = QInputDialog.getText(self, 'Change len keys ',
+                                          'Укажите новую длину для ключей от 50 до 200.')
+        if choice.isdigit() and int(choice) >= 50 and int(choice) <= 200:
+            self.ui2.label_16.setText(choice)
+            self.ui2.label_15.setText("Длина ключей " + choice + " символов.")
+        else:
+            msgShow("Длина ключей задана неверно")
+            return
+        msgShow("Изменения успешно приняты")
+
 
 app = QApplication([])
 application = MainWin()

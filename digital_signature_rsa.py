@@ -18,7 +18,7 @@ def generation_keys(len_keys):
     return N, d, c
 
 
-def get_signature(text="", hash="md5", c=0, N=0):
+def get_signature(text, hash, c, N):
     if hash == "md5":
         y = md5.data_to_md5(text)
     elif hash == "sha1":
