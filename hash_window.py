@@ -5,6 +5,8 @@ class Ui_Form_Hash(object):
     def setupUi(self, Form_Hash):
         Form_Hash.setObjectName("Form_Hash")
         Form_Hash.resize(608, 365)
+        Form_Hash.setMinimumSize(QtCore.QSize(608, 365))
+        Form_Hash.setMaximumSize(QtCore.QSize(608, 365))
         self.centralwidget = QtWidgets.QWidget(Form_Hash)
         self.centralwidget.setObjectName("centralwidget")
         self.textEdit = QtWidgets.QTextEdit(self.centralwidget)

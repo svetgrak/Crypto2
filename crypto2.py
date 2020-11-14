@@ -326,6 +326,8 @@ class DiffieHellmanWin(QMainWindow, Ui_Form_DiffieHellman):
         self.ui2.pushButton_7.clicked.connect(self.calculated_key_first)
         self.ui2.pushButton_8.clicked.connect(self.calculated_key_second)
         self.ui2.action_2.triggered.connect(self.change_len_num)
+        self.ui2.action.setStatusTip("Вернуться к выбору алгоритма")
+        self.ui2.action_2.setStatusTip("Установить свою длину генерируемых ключей (от 20 знаков до 200)")
 
 
     def back(self):
@@ -440,6 +442,8 @@ class ShamirWin(QMainWindow,Ui_Form_Shamir):
         self.ui2.action.triggered.connect(self.change_len_keys)
         self.ui2.pushButton.clicked.connect(self.generated_p)
         self.ui2.pushButton_2.clicked.connect(self.send_message)
+        self.ui2.action_2.setStatusTip("Вернуться к выбору алгоритма")
+        self.ui2.action.setStatusTip("Установить свою длину генерируемых ключей (от 20 знаков до 200)")
 
     def back(self):
         application.show()
@@ -504,6 +508,11 @@ class ElGamalWin(QMainWindow, Ui_Form_ElGamal):
         self.ui2.action.triggered.connect(self.open_file_bytes)
         self.ui2.action_2.triggered.connect(self.open_file)
         self.ui2.action_3.triggered.connect(self.save_file)
+        self.ui2.action_5.setStatusTip("Вернуться к выбору алгоритма")
+        self.ui2.action.setStatusTip("Загрузить файл для шифрования")
+        self.ui2.action_2.setStatusTip("Загрузить данные из файла для шифрования")
+        self.ui2.action_3.setStatusTip("Сохранить полученные данные как файл")
+        self.ui2.action_4.setStatusTip("Установить свою длину генерируемых ключей (от 20 знаков до 200)")
 
     def back(self):
         application.show()
@@ -622,6 +631,11 @@ class MD5HashWin(QMainWindow, Ui_Form_Hash):
         self.ui2.action_2.triggered.connect(self.open_file_bytes)
         self.ui2.action_3.triggered.connect(self.save_in_file)
         self.ui2.pushButton.clicked.connect(self.hash_md5)
+        self.ui2.action.setStatusTip("Загрузить данные из файла для хэширования")
+        self.ui2.action_2.setStatusTip("Загрузить файл для хэширования")
+        self.ui2.action_3.setStatusTip("Загрузить результат в файл")
+        self.ui2.action_4.setStatusTip("Вернуться к выбору алгоритма")
+
 
     def back(self):
         application.show()
@@ -687,6 +701,10 @@ class SHAHashWin(QMainWindow, Ui_Form_Hash):
         self.ui2.action_2.triggered.connect(self.open_file_bytes)
         self.ui2.action_3.triggered.connect(self.save_in_file)
         self.ui2.pushButton.clicked.connect(self.hash_sha1)
+        self.ui2.action.setStatusTip("Загрузить данные из файла для хэширования")
+        self.ui2.action_2.setStatusTip("Загрузить файл для хэширования")
+        self.ui2.action_3.setStatusTip("Загрузить результат в файл")
+        self.ui2.action_4.setStatusTip("Вернуться к выбору алгоритма")
 
 
     def back(self):
@@ -757,6 +775,12 @@ class DigSignRSAWin(QMainWindow, Ui_Form_DigSignRsa):
         self.ui2.action_2.triggered.connect(self.change_len_keys)
         self.ui2.action_5.triggered.connect(self.save_keys_signature)
         self.ui2.action_4.triggered.connect(self.download_keys_signature)
+        self.ui2.action.setStatusTip("Загрузить файл для получения электронной подписи")
+        self.ui2.action_2.setStatusTip("Установить свою длину генерируемых ключей (от 50 знаков до 200)")
+        self.ui2.action_3.setStatusTip("Вернуться к выбору алгоритма")
+        self.ui2.action_4.setStatusTip("Загрузить открытые и закрытый ключи и электронную подпись (из 3-х файлов)")
+        self.ui2.action_5.setStatusTip("Сохранить открытые и закрытый ключи и электронную подпись (в 3 файла)")
+
 
     def back(self):
         application.show()
