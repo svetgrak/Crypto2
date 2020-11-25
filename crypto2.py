@@ -1,4 +1,4 @@
-import sys
+import sys, time
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QFileDialog, QInputDialog
 from basic_algorithms_window import Ui_BasicAlgWindow
 from main_window import Ui_mainWindow
@@ -9,6 +9,7 @@ from elgamal_window import Ui_Form_ElGamal
 from hash_window import Ui_Form_Hash
 from digital_signature_rsa_window import Ui_Form_DigSignRsa
 from digital_signature_elgamal_window import Ui_Form_DigSignElGamal
+from dsa_window import Ui_Form_DSA
 import basic_algorithms
 import rsa
 import diffie_hellman
@@ -18,6 +19,7 @@ import md5
 import sha1
 import digital_signature_rsa
 import digital_signature_elgamal
+import dsa
 
 
 class MainWin(QMainWindow, Ui_mainWindow):
@@ -73,6 +75,8 @@ class MainWin(QMainWindow, Ui_mainWindow):
             self.window = DigSignRSAWin()
         elif choice == "на базе Эль-Гамаля":
             self.window = DigSignElGamalWin()
+        elif choice == "DSA":
+            self.window = DSAWin()
         try:
             self.window.show()
             application.hide()
@@ -977,12 +981,12 @@ class DigSignElGamalWin(QMainWindow, Ui_Form_DigSignElGamal):
         self.ui2.lineEdit_3.setText(str(x))
         self.ui2.lineEdit_4.setText(str(y))
         r, s = digital_signature_elgamal.get_signature(text, hash, p, g, x)
-        self.ui2.lineEdit_5.setText(str(r)+' '+str(s))
+        self.ui2.lineEdit_5.setText(str(r) + ' ' + str(s))
 
     def send_data_signature(self):
         text = self.ui2.textEdit.toPlainText()
         signature = self.ui2.lineEdit_5.text()
-        if text == "" or signature=="":
+        if text == "" or signature == "":
             msgShow("Нет данных для отправки")
             return
         self.ui2.textEdit_2.setText(text)
@@ -1005,10 +1009,10 @@ class DigSignElGamalWin(QMainWindow, Ui_Form_DigSignElGamal):
         signature = self.ui2.lineEdit_6.text()
         p = self.ui2.lineEdit_7.text()
         g = self.ui2.lineEdit_8.text()
-        if text == "" or signature== "" or p == "":
+        if text == "" or signature == "" or p == "":
             msgShow("Не хватает данных для проверки")
             return
-        r,s = signature.split(" ")
+        r, s = signature.split(" ")
         hash = str(self.ui2.comboBox.currentText())
         if digital_signature_elgamal.check_signature(text, hash, int(y), int(r), int(s), int(p), int(g)):
             self.ui2.lineEdit_10.setText("Подпись верна")
@@ -1071,7 +1075,7 @@ class DigSignElGamalWin(QMainWindow, Ui_Form_DigSignElGamal):
                 g = file.readline()[:-1]
                 y = file.readline()
                 file.close()
-                if p.isdigit() == False or g.isdigit() == False or y.isdigit()== False:
+                if p.isdigit() == False or g.isdigit() == False or y.isdigit() == False:
                     msgShow("Данные не удовлетворяют формату")
                     return
                 self.ui2.label_16.setText(str(len(p)))
@@ -1091,7 +1095,7 @@ class DigSignElGamalWin(QMainWindow, Ui_Form_DigSignElGamal):
                 file = open(choice[2], 'r')
                 signature = file.read()
                 file.close()
-                if signature.replace(' ', '').isdigit() == False  or len(signature.split(" ")) != 2:
+                if signature.replace(' ', '').isdigit() == False or len(signature.split(" ")) != 2:
                     msgShow("Данные не удовлетворяют формату")
                     return
                 self.ui2.lineEdit_5.setText(signature)
@@ -1111,6 +1115,268 @@ class DigSignElGamalWin(QMainWindow, Ui_Form_DigSignElGamal):
             return
         msgShow("Изменения успешно приняты")
 
+
+class DSAWin(QMainWindow, Ui_Form_DSA):
+
+    def __init__(self, parent=None):
+        super(DSAWin, self).__init__(parent)
+        self.setupUi(self)
+        self.ui2 = Ui_Form_DSA()
+        self.ui2.setupUi(self)
+        self.ui2.pushButton.clicked.connect(self.gener_p_q_g)
+        self.ui2.pushButton_2.clicked.connect(self.gener_keys)
+        self.ui2.pushButton_3.clicked.connect(self.get_digital_signature)
+        self.ui2.pushButton_4.clicked.connect(self.send_data_signature)
+        self.ui2.pushButton_5.clicked.connect(self.get_open_key)
+        self.ui2.pushButton_6.clicked.connect(self.check_signature)
+        self.ui2.action.triggered.connect(self.open_file_bytes)
+        self.ui2.action.setStatusTip("Загрузить файл для получения электронной подписи")
+        self.ui2.action_2.triggered.connect(self.save_numbs_keys)
+        self.ui2.action_2.setStatusTip("Сохранить общие числа, открытый и закрытый ключи (2 файла)")
+        self.ui2.action_3.triggered.connect(self.save_signature)
+        self.ui2.action_3.setStatusTip("Сохранить подпись")
+        self.ui2.action_4.triggered.connect(self.download_numbs_keys)
+        self.ui2.action_4.setStatusTip("Загрузить общие числа, открытый и закрытый ключи")
+        self.ui2.action_5.triggered.connect(self.download_signature)
+        self.ui2.action_5.setStatusTip("Загрузить подпись")
+        self.ui2.action_6.triggered.connect(self.back)
+        self.ui2.action_6.setStatusTip("Вернуться к выбору алгоритма")
+
+    def back(self):
+        application.show()
+        self.window().hide()
+
+    def gener_p_q_g(self):
+        data = self.ui2.textEdit_4.toPlainText()
+        if data == "":
+            msgShow("Введите данные")
+            return
+
+        self.ui2.label_12.setText("Выполняется генерация числа")
+        self.ui2.label_13.setText("Выполняется генерация числа")
+        self.ui2.label_14.setText("Выполняется генерация числа")
+        self.ui2.label_12.hide()
+        self.ui2.label_13.hide()
+        self.ui2.label_14.hide()
+
+        self.ui2.label_13.show()
+        start_time = time.time()
+        q = dsa.generation_q(sha1.data_to_sha1(data))
+        self.ui2.label_13.setText("Число сгенерировано за " + str(time.time() - start_time)[:5] + " сек.")
+        self.ui2.textEdit_2.setText(str(q))
+
+        self.ui2.label_12.show()
+        self.repaint()
+        start_time = time.time()
+        p = dsa.generation_p(q)
+        self.ui2.label_12.setText("Число сгенерировано за " + str(time.time() - start_time)[:5] + " сек.")
+        self.ui2.textEdit.setText(str(p))
+
+        self.ui2.label_14.show()
+        self.repaint()
+        start_time = time.time()
+        g = dsa.generation_g(p, q)
+        self.ui2.label_14.setText("Число сгенерировано за " + str(time.time() - start_time)[:5] + " сек.")
+        self.ui2.textEdit_3.setText(str(g))
+
+    def gener_keys(self):
+        p = self.ui2.textEdit.toPlainText()
+        q = self.ui2.textEdit_2.toPlainText()
+        g = self.ui2.textEdit_3.toPlainText()
+        if p == '' or q == '' or g == '':
+            msgShow("Сгенерируйте общие числа")
+            return
+        x, y = dsa.generation_keys(int(p), int(q), int(g))
+
+        self.ui2.textEdit_5.setText(str(y))
+        self.ui2.textEdit_6.setText(str(x))
+
+    def get_digital_signature(self):
+        data = self.ui2.textEdit_4.toPlainText()
+        if data == "":
+            msgShow("Нет данных для подписи")
+            return
+        p = self.ui2.textEdit.toPlainText()
+        q = self.ui2.textEdit_2.toPlainText()
+        g = self.ui2.textEdit_3.toPlainText()
+        if p == "" or q == "" or g == "":
+            msgShow("Общие числа не сгенерированы")
+            return
+        x = self.ui2.textEdit_6.toPlainText()
+        if x == "":
+            msgShow("Ключи не сгенерированы")
+            return
+        r, s = dsa.get_signature(data, int(p), int(q), int(g), int(x))
+        self.ui2.textEdit_7.setText(str(r) + " " + str(s))
+
+    def send_data_signature(self):
+        data = self.ui2.textEdit_4.toPlainText()
+        signature = self.ui2.textEdit_7.toPlainText()
+        sign = signature.split(" ")
+        if data == "" or signature == "" or len(sign) != 2 or sign[0].isdigit() == False \
+                or sign[1].isdigit() == False:
+            msgShow("Нет данных для отправки или они не верны")
+            return
+        self.ui2.textEdit_8.setText(data)
+        self.ui2.textEdit_9.setText(signature)
+        return
+
+    def get_open_key(self):
+        key = self.ui2.textEdit_5.toPlainText()
+        if key == "":
+            msgShow("Ключи не были сгенерированы")
+            return
+        self.ui2.textEdit_10.setText(key)
+        return
+
+    def check_signature(self):
+        data = self.ui2.textEdit_8.toPlainText()
+        signature = self.ui2.textEdit_9.toPlainText()
+        sign = signature.split(" ")
+        y = self.ui2.textEdit_10.toPlainText()
+        if data == "" or signature == "" or len(sign) != 2 or y == "" or sign[0].isdigit() == False \
+                or sign[1].isdigit() == False:
+            msgShow("Данные не получены или не верны")
+            return
+        r, s = sign[0], sign[1]
+        p = self.ui2.textEdit.toPlainText()
+        q = self.ui2.textEdit_2.toPlainText()
+        g = self.ui2.textEdit_3.toPlainText()
+        if p == "" or q == "" or g == "":
+            msgShow("Общие числа не сгенерированы")
+            return
+        if dsa.check_signature(data, int(p), int(q), int(g), int(r), int(s), int(y)):
+            self.ui2.textEdit_11.setText("Подпись верна")
+        else:
+            self.ui2.textEdit_11.setText("Подпись не верна")
+        return
+
+    def open_file_bytes(self):
+        fname = QFileDialog.getOpenFileName(self, 'OpenFile', '', '*', )[0]
+        try:
+            with open(fname, 'rb') as file:
+                text = file.read()
+        except FileNotFoundError:
+            return
+        self.ui2.textEdit_4.setText(str(text))
+
+    def save_numbs_keys(self):
+        p = self.ui2.textEdit.toPlainText()
+        q = self.ui2.textEdit_2.toPlainText()
+        g = self.ui2.textEdit_3.toPlainText()
+        x = self.ui2.textEdit_6.toPlainText()
+        y = self.ui2.textEdit_5.toPlainText()
+
+        if p == "" or g == "" or q == "" or x == "" or y == "":
+            msgShow("Нет данных для сохранения")
+            return
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для общих чисел, открытого и закрытого ключей через пробел (3 файла)')
+        if ok and choice != '':
+            choice = choice.split()
+            if len(choice) != 3:
+                msgShow("Введите 3 файла")
+                return
+            try:
+                file = open(choice[0], 'w+')
+                file.write(p + '\n' + q + '\n' + g)
+                file.close()
+                file = open(choice[1], 'w+')
+                file.write(y)
+                file.close()
+                file = open(choice[2], 'w+')
+                file.write(x)
+                file.close()
+            except FileNotFoundError:
+                return
+            msgShow("Данные успешно сохранены")
+        else:
+            msgShow("Сохранение не произошло")
+
+    def download_numbs_keys(self):
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имена файлов для общих чисел, открытого и закрытого ключей через пробел (3 файла)')
+        if ok and choice != '':
+            choice = choice.split()
+            if len(choice) != 3:
+                msgShow("Введите 3 файла")
+                return
+            try:
+                file = open(choice[0], 'r')
+                p = file.readline()[:-1]
+                q = file.readline()[:-1]
+                g = file.readline()
+                file.close()
+                if p.isdigit() == False or q.isdigit() == False or g.isdigit() == False or dsa.check_p_q_g(int(p), int(q), int(g)) == False:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+
+                self.ui2.textEdit.setText(p)
+                self.ui2.textEdit_2.setText(q)
+                self.ui2.textEdit_3.setText(g)
+
+                file = open(choice[1], 'r')
+                y = file.read()
+                file.close()
+                if y.isdigit() == False:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.textEdit_10.setText(y)
+                self.ui2.textEdit_5.setText(y)
+
+                file = open(choice[2], 'r')
+                x = file.read()
+                file.close()
+                if x.isdigit() == False or 0 > int(x) > int(q):
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+                self.ui2.textEdit_6.setText(x)
+            except FileNotFoundError:
+                msgShow("Выберите существующие файлы")
+                return
+        return
+
+    def save_signature(self):
+        signature = self.ui2.textEdit_7.toPlainText()
+        sign = signature.split(" ")
+        if  signature == "" or len(sign) != 2 or sign[0].isdigit() == False \
+                or sign[1].isdigit() == False:
+            msgShow("Нет данных для сохранения или они не верны")
+            return
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имя для файла с подписью)')
+        if ok and choice != '':
+            try:
+                file = open(choice, 'w+')
+                file.write(sign[0]+"\n"+sign[1])
+                file.close()
+            except FileNotFoundError:
+                return
+            msgShow("Данные успешно сохранены")
+        else:
+            msgShow("Сохранение не произошло")
+        return
+
+    def download_signature(self):
+        choice, ok = QInputDialog.getText(self, 'File names ',
+                                          'Укажите имя файла с подписью')
+        if ok and choice != '':
+            try:
+                file = open(choice, 'r')
+                r = file.readline()[:-1]
+                s = file.readline()
+                file.close()
+                if r.isdigit() == False or s.isdigit() == False:
+                    msgShow("Данные не удовлетворяют формату")
+                    return
+
+                self.ui2.textEdit_7.setText(r + " " + s)
+                self.ui2.textEdit_9.setText(r+" "+s)
+
+            except FileNotFoundError:
+                msgShow("Выберите существующие файлы")
+                return
+        return
 
 app = QApplication([])
 application = MainWin()
